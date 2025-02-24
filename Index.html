@@ -1,0 +1,105 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numadic Vehicle Tracking</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Numadic Vehicle Tracking System</h1>
+    
+    <form id="vehicleForm">
+        <input type="text" id="vehicleNumber" placeholder="Enter Vehicle Number" required>
+        <input type="text" id="licensePlate" placeholder="Enter License Plate" required>
+        <input type="text" id="latitude" placeholder="Latitude" required>
+        <input type="text" id="longitude" placeholder="Longitude" required>
+        <input type="text" id="model" placeholder="Vehicle Model" required>
+        <input type="text" id="owner" placeholder="Owner Name" required>
+        <button type="submit">Register Vehicle</button>
+    </form>
+    
+    <h2>Registered Vehicles</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Vehicle Number</th>
+                <th>License Plate</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Model</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody id="vehicleList"></tbody>
+    </table>
+    
+    <h2>Vehicle Locations</h2>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        let markers = {};
+
+        document.getElementById('vehicleForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const vehicleNumber = document.getElementById('vehicleNumber').value;
+            const licensePlate = document.getElementById('licensePlate').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const model = document.getElementById('model').value;
+            const owner = document.getElementById('owner').value;
+            
+            const response = await fetch('http://localhost:8080/api/vehicles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vehicleNumber, licensePlate, latitude, longitude, model, owner })
+            });
+            
+            if (response.ok) {
+                fetchVehicles();
+            }
+        });
+        
+        async function fetchVehicles() {
+            const response = await fetch('http://localhost:8080/api/vehicles');
+            const vehicles = await response.json();
+            const vehicleList = document.getElementById('vehicleList');
+            vehicleList.innerHTML = '';
+            
+            vehicles.forEach(vehicle => {
+                const row = `<tr>
+                                <td>${vehicle.vehicleNumber}</td>
+                                <td>${vehicle.licensePlate}</td>
+                                <td>${vehicle.latitude}</td>
+                                <td>${vehicle.longitude}</td>
+                                <td>${vehicle.model}</td>
+                                <td>${vehicle.owner}</td>
+                            </tr>`;
+                vehicleList.innerHTML += row;
+
+                if (markers[vehicle.vehicleNumber]) {
+                    markers[vehicle.vehicleNumber].setLatLng([vehicle.latitude, vehicle.longitude]);
+                } else {
+                    markers[vehicle.vehicleNumber] = L.marker([vehicle.latitude, vehicle.longitude])
+                        .addTo(map)
+                        .bindPopup(`<b>${vehicle.vehicleNumber}</b><br>${vehicle.model}<br>${vehicle.owner}`);
+                }
+            });
+        }
+        
+        fetchVehicles();
+    </script>
+</body>
+</html>
