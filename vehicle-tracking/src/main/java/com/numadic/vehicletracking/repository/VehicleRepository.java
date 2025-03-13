@@ -1,6 +1,5 @@
 package com.numadic.vehicletracking.repository;
 
-
 import com.numadic.vehicletracking.model.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 

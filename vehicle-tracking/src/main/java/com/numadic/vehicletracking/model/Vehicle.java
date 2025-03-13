@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 public class Vehicle {
 
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

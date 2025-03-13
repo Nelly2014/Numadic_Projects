@@ -15,6 +15,7 @@ import java.util.Optional;
 @RequestMapping("/api/vehicles")
 //@RequestMapping("/api/vehicles")
 
+@CrossOrigin(origins = "*")
 
 public class VehicleController {
 
